@@ -7,13 +7,13 @@ import lombok.Getter;
 public class SendGridMail {
 
     @Getter
-    Email from = new Email("challenge@alkemy.com");
+    private Email from = new Email("challenge@alkemy.com");
     @Getter
-    Email to = null;
+    private Email to = null;
     @Getter
-    String subject = "Registration to Challenge Alkemy successful";
+    private String subject = "Registration to Challenge Alkemy successful";
     @Getter
-    Content content = new Content("text/plain",
+    private Content content = new Content("text/plain",
             "Thank you for joining Challenge Alkemy. \nWe hope you have a great time with us!");
 
     public SendGridMail(String to){
