@@ -14,7 +14,7 @@ public class ChallengeUserDetails implements UserDetails {
     private String password;
     private String role;
 
-    ChallengeUserDetails(UserEntity user){
+    public ChallengeUserDetails(UserEntity user){
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.role = user.getRole();

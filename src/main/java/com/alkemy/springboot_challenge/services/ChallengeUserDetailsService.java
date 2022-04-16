@@ -16,6 +16,7 @@ public class ChallengeUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
         UserEntity user = userRepository.findByUsername(username)
                                         .orElseThrow(() -> new UsernameNotFoundException("Not found username: "+username));
 
