@@ -1,5 +1,6 @@
 package com.alkemy.springboot_challenge.entities;
 
+import com.sun.istack.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,8 @@ public class UserEntity {
     private String username;
     @Getter @Setter @Column(name = "password")
     private String password;
+    @Getter @Setter @NotNull @Column(name = "email")
+    private String email;
     @Getter @Setter @Column(name = "role")
     private String role;
 }
