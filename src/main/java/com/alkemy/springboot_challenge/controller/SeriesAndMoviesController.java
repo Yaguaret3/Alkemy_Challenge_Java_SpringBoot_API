@@ -1,5 +1,7 @@
 package com.alkemy.springboot_challenge.controller;
 
+import com.alkemy.springboot_challenge.dto.SeriesAndMoviesDTODetails;
+import com.alkemy.springboot_challenge.dto.SeriesAndMoviesDTOGeneral;
 import com.alkemy.springboot_challenge.entities.CharacterEntity;
 import com.alkemy.springboot_challenge.entities.GenreEntity;
 import com.alkemy.springboot_challenge.entities.SeriesAndMoviesEntity;
@@ -8,38 +10,42 @@ import com.alkemy.springboot_challenge.http.SeriesAndMoviesNotFoundException;
 import com.alkemy.springboot_challenge.repositories.CharacterRepository;
 import com.alkemy.springboot_challenge.repositories.GenreRepository;
 import com.alkemy.springboot_challenge.repositories.SeriesAndMoviesRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class SeriesAndMoviesController {
 
-    private final SeriesAndMoviesRepository repository;
-    private final CharacterRepository characterRepository;
-    private final GenreRepository genreRepository;
-
-    SeriesAndMoviesController(SeriesAndMoviesRepository repository, CharacterRepository characterRepository, GenreRepository genreRepository) {
-        this.repository = repository;
-        this.characterRepository = characterRepository;
-        this.genreRepository = genreRepository;
-    }
+    @Autowired
+    private SeriesAndMoviesRepository repository;
+    @Autowired
+    private CharacterRepository characterRepository;
+    @Autowired
+    private GenreRepository genreRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping("/movies/{id}")
-    public SeriesAndMoviesEntity readOneMovie (@PathVariable Long id){
+    public SeriesAndMoviesDTODetails readOneMovie (@PathVariable Long id){
 
-        return repository.findById(id)
+        SeriesAndMoviesEntity found = repository.findById(id)
                 .orElseThrow(() -> new SeriesAndMoviesNotFoundException(id));
+        return modelMapper.map(found, SeriesAndMoviesDTODetails.class);
     }
 
     @PostMapping("/movies")
-    public SeriesAndMoviesEntity createMovie(@RequestBody SeriesAndMoviesEntity movieRecieved){
-        return repository.save(movieRecieved);
+    public SeriesAndMoviesDTODetails createMovie(@RequestBody SeriesAndMoviesEntity movieRecieved){
+        SeriesAndMoviesEntity saved = repository.save(movieRecieved);
+        return modelMapper.map(saved, SeriesAndMoviesDTODetails.class);
     }
 
     @PutMapping("/movies/{id}")
-    public SeriesAndMoviesEntity updateMovie(@RequestBody SeriesAndMoviesEntity movieRecieved, @PathVariable Long id){
-        return repository.findById(id)
+    public SeriesAndMoviesDTODetails updateMovie(@RequestBody SeriesAndMoviesEntity movieRecieved, @PathVariable Long id){
+        SeriesAndMoviesEntity updated = repository.findById(id)
                 .map(seriesOrMovie -> {
                     seriesOrMovie.setImg(movieRecieved.getImg());
                     seriesOrMovie.setGenre(movieRecieved.getGenre());
@@ -52,6 +58,7 @@ public class SeriesAndMoviesController {
                     movieRecieved.setId(id);
                     return repository.save(movieRecieved);
                 });
+        return modelMapper.map(updated, SeriesAndMoviesDTODetails.class);
     }
 
     @DeleteMapping("/movies/{id}")
@@ -60,11 +67,16 @@ public class SeriesAndMoviesController {
     }
 
     @GetMapping("/movies")
-    public List<SeriesAndMoviesEntity> readByParams(@RequestParam(required = false, name = "name") String title,
-                                                    @RequestParam(required = false, name = "genre") String genre,
-                                                    @RequestParam(required = false, name = "order") String order){
+    public List<SeriesAndMoviesDTOGeneral> readByParams(@RequestParam(required = false, name = "name") String title,
+                                                        @RequestParam(required = false, name = "genre") String genre,
+                                                        @RequestParam(required = false, name = "order") String order){
 
-        return repository.findByParams(title, genre);
+        List<SeriesAndMoviesEntity> entities = repository.findByParams(title, genre);
+        List<SeriesAndMoviesDTOGeneral> response = new ArrayList<>();
+        for(SeriesAndMoviesEntity entity : entities){
+            response.add(modelMapper.map(entity, SeriesAndMoviesDTOGeneral.class));
+        }
+        return response;
     }
 
     @PostMapping("/movies/{idMovie}/characters/{idCharacter}")

@@ -1,33 +1,41 @@
 package com.alkemy.springboot_challenge.controller;
 
+import com.alkemy.springboot_challenge.dto.CharacterDTODetails;
+import com.alkemy.springboot_challenge.dto.CharacterDTOGeneral;
 import com.alkemy.springboot_challenge.repositories.CharacterRepository;
 import com.alkemy.springboot_challenge.entities.CharacterEntity;
 import com.alkemy.springboot_challenge.http.CharacterNotFoundException;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class CharacterController {
 
-    private final CharacterRepository repository;
+    @Autowired
+    private CharacterRepository repository;
 
-    CharacterController(CharacterRepository repository) {
-        this.repository = repository;
-    }
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping("/characters/{id}")
-    public CharacterEntity readOneCharacter (@PathVariable Long id){
+    public CharacterDTODetails readOneCharacter (@PathVariable Long id){
 
-        return repository.findById(id).
+        CharacterEntity found = repository.findById(id).
                 orElseThrow(() -> new CharacterNotFoundException(id));
+
+        return modelMapper.map(found, CharacterDTODetails.class);
     }
 
     @PostMapping("/characters")
-    public CharacterEntity createCharacter(@RequestBody CharacterEntity characterEntityRecieved){
+    public CharacterDTODetails createCharacter(@RequestBody CharacterEntity characterEntityRecieved){
 
-        return repository.save(characterEntityRecieved);
+        CharacterEntity saved = repository.save(characterEntityRecieved);
+        return modelMapper.map(saved, CharacterDTODetails.class);
     }
 
     @DeleteMapping("/characters/{id}")
@@ -36,8 +44,8 @@ public class CharacterController {
     }
 
     @PutMapping("/characters/{id}")
-    public CharacterEntity updateCharacter(@RequestBody CharacterEntity characterEntityRecieved, @PathVariable Long id){
-        return repository.findById(id)
+    public CharacterDTODetails updateCharacter(@RequestBody CharacterEntity characterEntityRecieved, @PathVariable Long id){
+        CharacterEntity updated = repository.findById(id)
                 .map(character -> {
                     character.setName(characterEntityRecieved.getName());
                     character.setImg(characterEntityRecieved.getImg());
@@ -50,22 +58,18 @@ public class CharacterController {
                     characterEntityRecieved.setId(id);
                     return repository.save(characterEntityRecieved);
                 });
+        return modelMapper.map(updated, CharacterDTODetails.class);
     }
 
     @GetMapping("/characters")
-    public List<CharacterEntity> readCharactersWithParams(@Param("name") String name,
-                                                       @Param("age") String age,
-                                                       @Param("movies") Long idMovies){
-        return repository.findCharacterByParams(name, age, idMovies);
+    public List<CharacterDTOGeneral> readCharactersWithParams(@Param("name") String name,
+                                                              @Param("age") String age,
+                                                              @Param("movies") Long idMovies){
+        List<CharacterEntity> entities = repository.findCharacterByParams(name, age, idMovies);
+        List<CharacterDTOGeneral> response = new ArrayList<>();
+        for(CharacterEntity entity : entities){
+            response.add(modelMapper.map(entity, CharacterDTOGeneral.class));
+        }
+        return response;
     }
-
-
-    /*@GetMapping("characters")
-    public List<CharacterEntity> readAllCharacters(){
-        return repository.findAllCharacters();
-    }*/
-
-
-
-
 }
